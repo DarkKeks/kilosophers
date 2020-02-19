@@ -1,14 +1,20 @@
 package ru.spbstu.kilosophers
 
 import kotlinx.coroutines.*
+import org.junit.Rule
 import ru.spbstu.kilosophers.atomic.AtomicForkBox
 import ru.spbstu.kilosophers.concurrent.ConcurrentForkBox
 import ru.spbstu.kilosophers.sample.SampleUniversity
+import ru.spbstu.kilosophers.waiter.WaiterUniversity
 import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 import kotlin.test.Test
 
 class SampleTest {
+
+    @Rule
+    @JvmField
+    var expectedFailure = ExpectedFailure()
 
     private fun doTest(university: University, forkBox: ForkBox, kilosopherCount: Int, duration: Int) {
         val forks = MutableList(kilosopherCount) { forkBox.produce() }
@@ -44,12 +50,24 @@ class SampleTest {
     }
 
     @Test
+    @Fail
     fun testSampleKilosopherWithConcurrentFork() {
         doTest(SampleUniversity, ConcurrentForkBox, kilosopherCount = 5, duration = 20000)
     }
 
     @Test
+    @Fail
     fun testSampleKilosopherWithAtomicFork() {
         doTest(SampleUniversity, AtomicForkBox, kilosopherCount = 5, duration = 20000)
+    }
+
+    @Test
+    fun testWaiterKilosopherWithConcurrentFork() {
+        doTest(WaiterUniversity(5), ConcurrentForkBox, kilosopherCount = 5, duration = 20000)
+    }
+
+    @Test
+    fun testWaiterKilosopherWithAtomicFork() {
+        doTest(WaiterUniversity(5), AtomicForkBox, kilosopherCount = 5, duration = 20000)
     }
 }
