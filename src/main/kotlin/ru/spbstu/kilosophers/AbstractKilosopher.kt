@@ -3,12 +3,15 @@ package ru.spbstu.kilosophers
 import kotlinx.coroutines.*
 import java.util.*
 
-abstract class AbstractKilosopher(private val left: Fork, private val right: Fork) {
+abstract class AbstractKilosopher(private val left: Fork, private val right: Fork, private val napkins: NapkinSet) {
 
     var holdsLeft: Boolean = false
         private set
 
     var holdsRight: Boolean = false
+        private set
+
+    var hasNapkin: Boolean = false
         private set
 
     var eatDuration: Int = 0
@@ -42,11 +45,23 @@ abstract class AbstractKilosopher(private val left: Fork, private val right: For
                 holdsRight = false
                 return true
             }
+            ActionKind.TAKE_NAPKIN -> {
+                if (hasNapkin) return false
+                if (napkins.tryTake()) {
+                    hasNapkin = true
+                }
+                return hasNapkin
+            }
+            ActionKind.DROP_NAPKIN -> {
+                if (!hasNapkin) return false
+                napkins.tryDrop()
+                return true
+            }
             ActionKind.THINK -> {
                 return true
             }
             ActionKind.EAT -> {
-                if (!holdsLeft || !holdsRight) return false
+                if (!holdsLeft || !holdsRight || !hasNapkin) return false
                 eatDuration += action.duration
                 return true
             }

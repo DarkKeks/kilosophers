@@ -6,6 +6,8 @@ enum class ActionKind {
     TAKE_RIGHT,
     DROP_LEFT,
     DROP_RIGHT,
+    TAKE_NAPKIN,
+    DROP_NAPKIN,
     EAT;
 
     operator fun invoke(duration: Int) = Action(this, duration)

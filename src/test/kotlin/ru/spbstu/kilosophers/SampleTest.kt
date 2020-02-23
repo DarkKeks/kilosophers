@@ -3,12 +3,14 @@ package ru.spbstu.kilosophers
 import kotlinx.coroutines.*
 import org.junit.Rule
 import ru.spbstu.kilosophers.atomic.AtomicForkBox
+import ru.spbstu.kilosophers.atomic.AtomicNapkinBox
 import ru.spbstu.kilosophers.concurrent.ConcurrentForkBox
+import ru.spbstu.kilosophers.concurrent.ConcurrentNapkinBox
 import ru.spbstu.kilosophers.sample.SampleUniversity
 import ru.spbstu.kilosophers.waiter.WaiterUniversity
+import kotlin.test.Test
 import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
-import kotlin.test.Test
 
 class SampleTest {
 
@@ -16,13 +18,14 @@ class SampleTest {
     @JvmField
     var expectedFailure = ExpectedFailure()
 
-    private fun doTest(university: University, forkBox: ForkBox, kilosopherCount: Int, duration: Int) {
+    private fun doTest(university: University, forkBox: ForkBox, napkinBox: NapkinBox, kilosopherCount: Int, napkinCount: Int, duration: Int) {
         val forks = MutableList(kilosopherCount) { forkBox.produce() }
+        val napkins = napkinBox.produce(napkinCount)
         val kilosophers = mutableListOf<AbstractKilosopher>()
         for (index in 0 until kilosopherCount) {
             val leftFork = forks[index]
             val rightFork = forks[(index + 1) % kilosopherCount]
-            val kilosopher = university.produce(leftFork, rightFork, index)
+            val kilosopher = university.produce(leftFork, rightFork, napkins, index)
             kilosophers.add(kilosopher)
         }
 
@@ -49,25 +52,29 @@ class SampleTest {
 
     }
 
+    private val KILOSOPHER_COUNT = 10
+    private val NAPKIN_COUNT = 3
+    private val DURATION = 20000
+
     @Test
     @Fail
     fun testSampleKilosopherWithConcurrentFork() {
-        doTest(SampleUniversity, ConcurrentForkBox, kilosopherCount = 5, duration = 20000)
+        doTest(SampleUniversity, ConcurrentForkBox, ConcurrentNapkinBox, kilosopherCount = KILOSOPHER_COUNT, napkinCount = NAPKIN_COUNT, duration = DURATION)
     }
 
     @Test
     @Fail
     fun testSampleKilosopherWithAtomicFork() {
-        doTest(SampleUniversity, AtomicForkBox, kilosopherCount = 5, duration = 20000)
+        doTest(SampleUniversity, AtomicForkBox, AtomicNapkinBox, kilosopherCount = KILOSOPHER_COUNT, napkinCount = NAPKIN_COUNT, duration = DURATION)
     }
 
     @Test
     fun testWaiterKilosopherWithConcurrentFork() {
-        doTest(WaiterUniversity(5), ConcurrentForkBox, kilosopherCount = 5, duration = 20000)
+        doTest(WaiterUniversity(KILOSOPHER_COUNT), ConcurrentForkBox, ConcurrentNapkinBox, kilosopherCount = KILOSOPHER_COUNT, napkinCount = NAPKIN_COUNT, duration = DURATION)
     }
 
     @Test
     fun testWaiterKilosopherWithAtomicFork() {
-        doTest(WaiterUniversity(5), AtomicForkBox, kilosopherCount = 5, duration = 20000)
+        doTest(WaiterUniversity(KILOSOPHER_COUNT), AtomicForkBox, AtomicNapkinBox, kilosopherCount = KILOSOPHER_COUNT, napkinCount = NAPKIN_COUNT, duration = DURATION)
     }
 }
